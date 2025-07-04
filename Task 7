@@ -1,0 +1,74 @@
+-- Step 1: Create Database and Use It
+CREATE DATABASE ViewTaskDB;
+USE ViewTaskDB;
+
+-- Step 2: Create Base Tables
+
+-- Customers Table
+CREATE TABLE Customers (
+    customer_id INT PRIMARY KEY AUTO_INCREMENT,
+    customer_name VARCHAR(100),
+    city VARCHAR(50)
+);
+
+-- Orders Table
+CREATE TABLE Orders (
+    order_id INT PRIMARY KEY AUTO_INCREMENT,
+    customer_id INT,
+    order_date DATE,
+    amount DECIMAL(10,2),
+    FOREIGN KEY (customer_id) REFERENCES Customers(customer_id)
+);
+
+-- Step 3: Insert Sample Data
+
+INSERT INTO Customers (customer_name, city) VALUES
+('John Doe', 'New York'),
+('Jane Smith', 'Los Angeles'),
+('Mike Johnson', 'Chicago');
+
+INSERT INTO Orders (customer_id, order_date, amount) VALUES
+(1, '2025-07-01', 200.00),
+(1, '2025-07-02', 150.00),
+(2, '2025-07-03', 300.00);
+
+-- Step 4: Create Views
+
+-- 1. View with Customer and Total Order Amount
+CREATE VIEW CustomerOrderSummary AS
+SELECT c.customer_id, c.customer_name, c.city, SUM(o.amount) AS total_spent
+FROM Customers c
+JOIN Orders o ON c.customer_id = o.customer_id
+GROUP BY c.customer_id, c.customer_name, c.city;
+
+-- 2. View for High Value Orders
+CREATE VIEW HighValueOrders AS
+SELECT o.order_id, c.customer_name, o.amount
+FROM Orders o
+JOIN Customers c ON o.customer_id = c.customer_id
+WHERE o.amount > 200;
+
+-- 3. View with WITH CHECK OPTION (Only New York customers allowed)
+CREATE VIEW NYCustomers AS
+SELECT * FROM Customers
+WHERE city = 'New York'
+WITH CHECK OPTION;
+
+-- Step 5: Use the Views
+
+-- View 1: Customer Order Summary
+SELECT * FROM CustomerOrderSummary;
+
+-- View 2: High Value Orders
+SELECT * FROM HighValueOrders;
+
+-- View 3: Insert allowed (New York)
+INSERT INTO NYCustomers (customer_name, city) VALUES ('Emily Green', 'New York');
+
+-- View 3: Insert NOT allowed (city other than New York - will fail)
+-- INSERT INTO NYCustomers (customer_name, city) VALUES ('Robert Brown', 'Houston');
+
+-- Optional: Drop views if needed
+-- DROP VIEW CustomerOrderSummary;
+-- DROP VIEW HighValueOrders;
+-- DROP VIEW NYCustomers;
